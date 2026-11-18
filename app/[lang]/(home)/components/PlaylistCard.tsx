@@ -2,11 +2,9 @@
 
 import type { CalculatedPlaylist, LanguageCode, Translations } from '@/app/types'
 
-import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { videoThumbnailUrl, fallbackThumbnailUrl } from '@/app/utils'
-import BookmarkButton from '@/app/[lang]/(home)/components/BookmarkButton'
+import React, { useSyncExternalStore } from 'react'
+import CatalogCard from '@/app/shared/components/CatalogCard'
+import BookmarkButton from '@/app/shared/components/BookmarkButton'
 import { useProgressStore } from '@/app/store/useProgressStore'
 
 export type PlaylistCardPlaylist = Pick<
@@ -20,14 +18,13 @@ export interface PlaylistCardProps {
   priority?: boolean
 }
 
-const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist, lang, t, priority = false }) => {
-  const [imageUrl, setImageUrl] = useState(videoThumbnailUrl(playlist.thumbnailId))
-  const [isClient, setIsClient] = useState(false)
-  const completedVideos = useProgressStore((s) => s.completedVideos)
+const subscribeToHydration = () => () => {}
+const clientSnapshot = () => true
+const serverSnapshot = () => false
 
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
+const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist, lang, t, priority = false }) => {
+  const isClient = useSyncExternalStore(subscribeToHydration, clientSnapshot, serverSnapshot)
+  const completedVideos = useProgressStore((s) => s.completedVideos)
 
   const completedCount = isClient ? (completedVideos[playlist.id]?.size ?? 0) : 0
   const totalCount = playlist.videoCount
@@ -36,24 +33,17 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist, lang, t, priority
   const hasProgress = completedCount > 0
 
   return (
-    <Link href={`/${lang}/playlist/${playlist.id}`} className="block group">
-      <article className="h-full bg-slate-800/50 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 border border-slate-700 hover:border-primary">
-        <div className="aspect-video w-full overflow-hidden relative">
-          <Image
-            src={imageUrl}
-            alt={playlist.name}
-            fill={true}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
-            priority={priority}
-            fetchPriority={priority ? 'high' : undefined}
-            onError={() => setImageUrl(fallbackThumbnailUrl(playlist.thumbnailId))}
-          />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-
+    <CatalogCard
+      href={`/${lang}/playlist/${playlist.id}`}
+      title={playlist.name}
+      description={playlist.description}
+      thumbnailId={playlist.thumbnailId}
+      priority={priority}
+      thumbnailOverlay={
+        <>
           {/* Bookmark button — top end */}
-          <div className="absolute top-2 end-2">
-            <BookmarkButton playlistId={playlist.id} />
+          <div className="pointer-events-auto absolute top-2 end-2">
+            <BookmarkButton contentId={playlist.id} kind="series" t={t} />
           </div>
 
           {/* Completed badge — top start */}
@@ -90,16 +80,9 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist, lang, t, priority
               />
             </div>
           )}
-        </div>
-
-        <div className="p-4">
-          <h2 className="text-lg font-semibold text-white group-hover:text-primary transition-colors">
-            {playlist.name}
-          </h2>
-          <p className="text-sm text-slate-400 mt-1 line-clamp-3 min-h-[3.75rem]">{playlist.description}</p>
-        </div>
-      </article>
-    </Link>
+        </>
+      }
+    />
   )
 }
 

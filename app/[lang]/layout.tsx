@@ -5,7 +5,7 @@ import React from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { allLanguages, defaultLanguage, metadata } from '@/app/static'
 import { getLanguage, getTranslations } from '@/app/translate'
-import LanguageSwitcher from '@/app/shared/components/LanguageSwitcher'
+import ContentNav from '@/app/shared/components/ContentNav'
 import LanguagePicker from '@/app/shared/components/LanguagePicker'
 import NotesInbox from '@/app/shared/components/NotesInbox'
 import FeedbackWidget from '@/app/shared/components/FeedbackWidget'
@@ -93,9 +93,7 @@ const LanguageLayout: React.FC<Readonly<LanguageLayoutProps>> = async ({ childre
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NotesInbox />
         <LanguagePicker currentLang={lang.code} t={t} />
-        <div className={`fixed top-3 z-50 ${lang.dir === 'rtl' ? 'left-4' : 'right-4'}`}>
-          <LanguageSwitcher currentLang={lang.code} dir={lang.dir} />
-        </div>
+        <ContentNav lang={lang.code} t={t} />
         {children}
         <FeedbackWidget t={t} lang={lang.code} />
       </body>
