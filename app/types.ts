@@ -94,6 +94,8 @@ export interface NotesHandoffPayload {
 export enum FeedbackType {
   /** Suggest a new playlist/series to add to the index */
   PlaylistSuggestion = 'playlist',
+  /** Suggest a standalone podcast episode */
+  PodcastSuggestion = 'podcast',
   /** Suggest an improvement to the app in general */
   AppSuggestion = 'app',
   /** Report a problem or complaint */
@@ -111,6 +113,7 @@ export const FEEDBACK_CONTACT_MAX_LENGTH = 200
 /** All valid feedback type values, for runtime validation */
 export const feedbackTypes: readonly FeedbackType[] = Object.freeze([
   FeedbackType.PlaylistSuggestion,
+  FeedbackType.PodcastSuggestion,
   FeedbackType.AppSuggestion,
   FeedbackType.Complaint,
   FeedbackType.General,
@@ -203,6 +206,7 @@ export interface Translations {
   filterAdvancedLabel: string
   filterBookmarksLabel: string
   bookmarkLabel: string
+  removeBookmarkLabel: string
   continueWatchingLabel: string
   viewAllLabel: string
   showLessLabel: string
@@ -239,11 +243,28 @@ export interface Translations {
   noteSavedLabel: string
   noteSavingLabel: string
   videoUnavailableLabel: string
+  watchPodcastLabel: string
+  podcastDetailsLabel: string
+  playerLoadingLabel: string
+  playerRetryLabel: string
+  podcastUnavailableLabel: string
+  podcastBackToHomeLabel: string
+  podcastBackToCatalogLabel: string
+  contentNavigationLabel: string
+  seriesNavLabel: string
+  podcastsNavLabel: string
+  podcastsHeading: string
+  searchPodcastsPlaceholder: string
+  noPodcastsLabel: string
+  noPodcastMatchesLabel: string
+  podcastCatalogErrorLabel: string
+  tryAgainLabel: string
   feedback: {
     buttonLabel: string
     title: string
     typeLabel: string
     typePlaylist: string
+    typePodcast: string
     typeApp: string
     typeComplaint: string
     typeGeneral: string

@@ -1,6 +1,7 @@
 import { revalidateTag } from 'next/cache'
 import { PLAYLISTS_TAG } from '@/app/api/playlists'
 import { VIDEOS_TAG } from '@/app/api/videos'
+import { PODCASTS_TAG } from '@/app/podcasts/contract'
 
 /**
  * On-demand cache revalidation webhook.
@@ -12,7 +13,7 @@ import { VIDEOS_TAG } from '@/app/api/videos'
  * Auth: requires `Authorization: Bearer <REVALIDATE_SECRET>`, where the secret
  * matches `process.env.REVALIDATE_SECRET` (shared with the admin app).
  *
- * Body (optional JSON): `{ tag?: "playlists" | "videos" }`. When a known tag is
+ * Body (optional JSON): `{ tag?: "playlists" | "videos" | "podcasts" }`. When a known tag is
  * given, only that tag is revalidated; otherwise both are. A missing or invalid
  * body falls back to revalidating both tags.
  */
@@ -22,7 +23,8 @@ import { VIDEOS_TAG } from '@/app/api/videos'
 export const dynamic = 'force-dynamic'
 
 // Next 16: revalidateTag requires a cache-life profile as its second arg.
-// 'max' gives stale-while-revalidate semantics.
+// Playlist/video refreshes retain stale-while-revalidate semantics. Podcasts
+// saved from the admin should appear on the next request after the webhook.
 const CACHE_LIFE_PROFILE = 'max'
 
 export async function POST(request: Request): Promise<Response> {
@@ -46,12 +48,13 @@ export async function POST(request: Request): Promise<Response> {
     requestedTag = undefined
   }
 
-  if (requestedTag === PLAYLISTS_TAG || requestedTag === VIDEOS_TAG) {
-    revalidateTag(requestedTag, CACHE_LIFE_PROFILE)
+  if (requestedTag === PLAYLISTS_TAG || requestedTag === VIDEOS_TAG || requestedTag === PODCASTS_TAG) {
+    revalidateTag(requestedTag, requestedTag === PODCASTS_TAG ? { expire: 0 } : CACHE_LIFE_PROFILE)
     return Response.json({ revalidated: [requestedTag] })
   }
 
   revalidateTag(PLAYLISTS_TAG, CACHE_LIFE_PROFILE)
   revalidateTag(VIDEOS_TAG, CACHE_LIFE_PROFILE)
-  return Response.json({ revalidated: [PLAYLISTS_TAG, VIDEOS_TAG] })
+  revalidateTag(PODCASTS_TAG, { expire: 0 })
+  return Response.json({ revalidated: [PLAYLISTS_TAG, VIDEOS_TAG, PODCASTS_TAG] })
 }

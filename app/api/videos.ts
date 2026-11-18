@@ -35,6 +35,13 @@ export const getVideos = unstable_cache(
   { tags: [VIDEOS_TAG], revalidate: VIDEOS_REVALIDATE },
 )
 
+/** Direct public lookup for activity records without playlist context. */
+export async function getStandaloneVideo(videoId: string): Promise<CalculatedVideo | undefined> {
+  const { data, error } = await supabase.from('videos').select('*').eq('id', videoId).maybeSingle()
+  if (error || !data) return undefined
+  return rowToVideo(data as VideoRow)
+}
+
 export async function getVideo(
   playlistId: string,
   videoId: string,

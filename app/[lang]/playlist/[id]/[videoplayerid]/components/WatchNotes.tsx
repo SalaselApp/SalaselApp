@@ -1,8 +1,8 @@
 'use client'
 
-import type { Translations } from '@/app/types'
+import type { NoteRecord, Translations } from '@/app/types'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useNotesStore } from '@/app/store/useNotesStore'
 import { usePreferencesStore } from '@/app/store/usePreferencesStore'
 import { downloadTextFile } from '@/app/utils'
@@ -10,7 +10,7 @@ import { buildVideoNoteMarkdown, videoNoteFileName, hasContent, MARKDOWN_MIME } 
 
 export interface WatchNotesProps {
   videoId: string
-  playlistId: string
+  playlistId: string | null
   t: Translations
 }
 
@@ -25,29 +25,47 @@ const WatchNotes: React.FC<WatchNotesProps> = ({ videoId, playlistId, t }) => {
   const existing = useNotesStore((s) => s.notes[videoId])
   const toggleNotesSide = usePreferencesStore((s) => s.toggleNotesSide)
 
-  const [text, setText] = useState(existing?.text ?? '')
+  const [draft, setDraft] = useState<NoteRecord | null>(null)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingRef = useRef<NoteRecord | null>(null)
+  const text = draft && (!existing || draft.updatedAt >= existing.updatedAt) ? draft.text : (existing?.text ?? '')
 
-  // Re-sync if a newer note arrives from the extension while the page is open.
-  useEffect(() => {
-    setText(existing?.text ?? '')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existing?.updatedAt])
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
+  const flushPending = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
     }
-  }, [])
+    const pending = pendingRef.current
+    if (!pending) return false
+    pendingRef.current = null
+    // A standalone edit must not discard an existing real playlist association
+    // for the same YouTube video. A new independent note stays playlistId:null.
+    const current = useNotesStore.getState().notes[pending.videoId]
+    upsertNote({ ...pending, playlistId: pending.playlistId ?? current?.playlistId ?? null })
+    return true
+  }, [upsertNote])
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value
-    setText(value)
+  useEffect(() => {
+    // React cleanup covers client navigation; pagehide covers reload/tab close.
+    const onPageHide = () => {
+      flushPending()
+    }
+    window.addEventListener('pagehide', onPageHide)
+    return () => {
+      window.removeEventListener('pagehide', onPageHide)
+      flushPending()
+    }
+  }, [flushPending])
+
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const next = { videoId, playlistId, text: event.target.value, updatedAt: Date.now() }
+    setDraft(next)
+    pendingRef.current = next
     setStatus('saving')
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => {
-      upsertNote({ videoId, playlistId, text: value, updatedAt: Date.now() })
+      flushPending()
       setStatus('saved')
     }, 600)
   }
@@ -79,7 +97,7 @@ const WatchNotes: React.FC<WatchNotesProps> = ({ videoId, playlistId, t }) => {
             disabled={!canDownload}
             aria-label={t.downloadNoteLabel}
             title={t.downloadNoteLabel}
-            className={`inline-flex items-center justify-center h-8 w-8 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+            className={`inline-flex items-center justify-center h-11 w-11 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
               canDownload
                 ? 'border-primary bg-primary text-white hover:bg-primary/90 cursor-pointer'
                 : 'border-slate-700 bg-slate-800/50 text-slate-500 cursor-not-allowed'
@@ -92,7 +110,7 @@ const WatchNotes: React.FC<WatchNotesProps> = ({ videoId, playlistId, t }) => {
             onClick={toggleNotesSide}
             aria-label={t.moveNotesSideLabel}
             title={t.moveNotesSideLabel}
-            className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-slate-600 bg-slate-700 text-slate-300 hover:border-primary hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+            className="inline-flex items-center justify-center h-11 w-11 rounded-full border border-slate-600 bg-slate-700 text-slate-300 hover:border-primary hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
           >
             <span className="material-icons-round text-sm">swap_horiz</span>
           </button>
@@ -102,6 +120,9 @@ const WatchNotes: React.FC<WatchNotesProps> = ({ videoId, playlistId, t }) => {
       <textarea
         value={text}
         onChange={handleChange}
+        onBlur={() => {
+          if (flushPending()) setStatus('saved')
+        }}
         placeholder={t.notesPlaceholder}
         aria-label={t.notesLabel}
         className="flex-1 min-h-72 w-full resize-none bg-transparent p-4 text-sm leading-relaxed text-slate-100 placeholder:text-slate-500 focus:outline-none"
