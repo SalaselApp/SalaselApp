@@ -1,2 +1,3 @@
 export { getPlaylists, getPlaylist, searchPlaylists } from '@/app/api/playlists'
-export { getVideos, getVideo } from '@/app/api/videos'
+export { getPodcast, getPodcasts } from '@/app/api/podcasts'
+export { getVideos, getVideo, getStandaloneVideo } from '@/app/api/videos'

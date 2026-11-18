@@ -89,6 +89,10 @@
       "type": "string",
       "description": "Action label on the bookmark button on the playlist detail page"
     },
+    "removeBookmarkLabel": {
+      "type": "string",
+      "description": "Remove an item from saved content"
+    },
     "continueWatchingLabel": {
       "type": "string",
       "description": "Section heading for recently watched playlists strip"
@@ -233,6 +237,13 @@
       "type": "string",
       "description": "Message shown when a video cannot be embedded and must be watched on YouTube"
     },
+    "watchPodcastLabel": {
+      "type": "string",
+      "description": "Primary action opening standalone podcast playback and notes"
+    },
+    "podcastDetailsLabel": { "type": "string", "description": "Return link from podcast playback to its details" },
+    "playerLoadingLabel": { "type": "string", "description": "Embedded player loading status" },
+    "playerRetryLabel": { "type": "string", "description": "Retry a failed or stalled embedded player" },
     "feedback": {
       "type": "object",
       "description": "Strings for the feedback widget (Discord webhook)",
@@ -241,6 +252,7 @@
         "title",
         "typeLabel",
         "typePlaylist",
+        "typePodcast",
         "typeApp",
         "typeComplaint",
         "typeGeneral",
@@ -260,6 +272,7 @@
         "title": { "type": "string", "description": "Feedback modal title" },
         "typeLabel": { "type": "string", "description": "Label for the feedback type selector" },
         "typePlaylist": { "type": "string", "description": "Feedback type: suggest a playlist" },
+        "typePodcast": { "type": "string", "description": "Feedback type: suggest a podcast" },
         "typeApp": { "type": "string", "description": "Feedback type: suggest an app improvement" },
         "typeComplaint": { "type": "string", "description": "Feedback type: complaint" },
         "typeGeneral": { "type": "string", "description": "Feedback type: general" },
@@ -307,6 +320,7 @@
     "filterAdvancedLabel",
     "filterBookmarksLabel",
     "bookmarkLabel",
+    "removeBookmarkLabel",
     "continueWatchingLabel",
     "viewAllLabel",
     "showLessLabel",
@@ -343,6 +357,11 @@
     "noteSavedLabel",
     "noteSavingLabel",
     "videoUnavailableLabel",
+    "watchPodcastLabel",
+    "podcastDetailsLabel",
+    "playerLoadingLabel",
+    "playerRetryLabel",
+
     "feedback",
     "appTitle",
     "appFullTitle",
