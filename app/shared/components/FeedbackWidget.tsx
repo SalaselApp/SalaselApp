@@ -13,7 +13,7 @@ export interface FeedbackWidgetProps {
 type Status = 'idle' | 'submitting' | 'success' | 'error' | 'rateLimited'
 
 /**
- * Floating feedback button + modal. Lets users send a playlist suggestion,
+ * Floating feedback button + modal. Lets users send a series or podcast suggestion,
  * an app suggestion, a complaint, or general feedback. Submissions POST to
  * `/api/feedback`, which forwards them to a Discord webhook server-side.
  *
@@ -32,6 +32,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ t, lang }) => {
 
   const typeOptions: { value: FeedbackType; label: string }[] = [
     { value: FeedbackType.PlaylistSuggestion, label: t.feedback.typePlaylist },
+    { value: FeedbackType.PodcastSuggestion, label: t.feedback.typePodcast },
     { value: FeedbackType.AppSuggestion, label: t.feedback.typeApp },
     { value: FeedbackType.Complaint, label: t.feedback.typeComplaint },
     { value: FeedbackType.General, label: t.feedback.typeGeneral },
@@ -93,15 +94,12 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ t, lang }) => {
 
   return (
     <div ref={containerRef}>
-      {/* Floating trigger */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label={t.feedback.buttonLabel}
         title={t.feedback.buttonLabel}
-        className={`fixed bottom-4 z-40 flex items-center justify-center h-12 w-12 rounded-full bg-primary text-white shadow-lg hover:brightness-110 transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900 cursor-pointer ${
-          dir === 'rtl' ? 'left-4' : 'right-4'
-        }`}
+        className={`fixed bottom-4 z-40 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-lg transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${dir === 'rtl' ? 'left-4' : 'right-4'}`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

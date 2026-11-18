@@ -4,20 +4,29 @@ import React, { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { allLanguages } from '@/app/static'
 import { usePlaylistStore } from '@/app/store/usePlaylistStore'
+import { usePodcastStore } from '@/app/store/usePodcastStore'
 import { usePreferencesStore } from '@/app/store/usePreferencesStore'
 import type { Language } from '@/app/types'
 
 export interface LanguageSwitcherProps {
   currentLang: string
   dir: 'rtl' | 'ltr'
+  compactOnMobile?: boolean
+  label?: string
 }
 
-const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ currentLang, dir }) => {
+const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
+  currentLang,
+  dir,
+  compactOnMobile = false,
+  label = 'Language',
+}) => {
   const router = useRouter()
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const { setLanguage } = usePlaylistStore()
+  const setPodcastLanguage = usePodcastStore((state) => state.setLanguage)
   const setPreferredLanguage = usePreferencesStore((s) => s.setPreferredLanguage)
 
   const current = allLanguages.find((l) => l.code === currentLang) ?? allLanguages[0]
@@ -25,8 +34,9 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ currentLang, dir })
   const handleSwitch = (lang: Language) => {
     setOpen(false)
     if (lang.code === currentLang) return
-    // Sync the playlist content filter to match the new UI language
+    // Keep both catalogue content filters aligned with the new UI language
     setLanguage(lang.code)
+    setPodcastLanguage(lang.code)
     // Remember the explicit choice so it persists across visits
     setPreferredLanguage(lang.code)
     const segments = pathname.split('/')
@@ -61,7 +71,9 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ currentLang, dir })
         onClick={() => setOpen((prev) => !prev)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800/80 backdrop-blur-sm border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+        aria-label={`${label}: ${current.name}`}
+        title={`${label}: ${current.name}`}
+        className="flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
       >
         {/* Globe icon */}
         <svg
@@ -82,7 +94,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ currentLang, dir })
           <path d="M2 12h20" />
         </svg>
 
-        <span>{current.name}</span>
+        <span className={compactOnMobile ? 'hidden sm:inline' : undefined}>{current.name}</span>
 
         {/* Chevron — flips when open */}
         <svg
@@ -106,7 +118,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ currentLang, dir })
       {open && (
         <ul
           role="listbox"
-          aria-label="Select language"
+          aria-label={label}
           className={`absolute top-full mt-1.5 min-w-full w-max bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden z-50 ${
             dir === 'rtl' ? 'left-0' : 'right-0'
           }`}
@@ -117,7 +129,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ currentLang, dir })
               <li key={lang.code} role="option" aria-selected={isActive}>
                 <button
                   onClick={() => handleSwitch(lang)}
-                  className={`w-full px-4 py-2 text-sm text-start transition-colors focus:outline-none focus:bg-slate-700 ${
+                  className={`min-h-11 w-full px-4 py-2 text-sm text-start transition-colors focus:outline-none focus:bg-slate-700 ${
                     isActive
                       ? 'bg-primary/20 text-primary font-medium cursor-default'
                       : 'text-slate-300 hover:bg-slate-700 hover:text-slate-100 cursor-pointer'

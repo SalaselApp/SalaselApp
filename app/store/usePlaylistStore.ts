@@ -36,16 +36,19 @@ const defaultFilters: FilterState = {
   bookmarkedOnly: false,
 }
 
-export const usePlaylistStore = create<PlaylistState>((set) => ({
-  filters: defaultFilters,
-  setLanguage: (l) => set((state) => ({ filters: { ...state.filters, language: l } })),
-  setContentType: (t) => set((state) => ({ filters: { ...state.filters, contentType: t } })),
-  setPresentationStyle: (s) => set((state) => ({ filters: { ...state.filters, presentationStyle: s } })),
-  setCategory: (c) => set((state) => ({ filters: { ...state.filters, category: c } })),
-  setClass: (c) => set((state) => ({ filters: { ...state.filters, class: c } })),
-  setBookmarkedOnly: (b) => set((state) => ({ filters: { ...state.filters, bookmarkedOnly: b } })),
-  resetFilters: () => set({ filters: defaultFilters }),
-}))
+export const createCatalogStore = () =>
+  create<PlaylistState>((set) => ({
+    filters: defaultFilters,
+    setLanguage: (l) => set((state) => ({ filters: { ...state.filters, language: l } })),
+    setContentType: (t) => set((state) => ({ filters: { ...state.filters, contentType: t } })),
+    setPresentationStyle: (s) => set((state) => ({ filters: { ...state.filters, presentationStyle: s } })),
+    setCategory: (c) => set((state) => ({ filters: { ...state.filters, category: c } })),
+    setClass: (c) => set((state) => ({ filters: { ...state.filters, class: c } })),
+    setBookmarkedOnly: (b) => set((state) => ({ filters: { ...state.filters, bookmarkedOnly: b } })),
+    resetFilters: () => set({ filters: defaultFilters }),
+  }))
+
+export const usePlaylistStore = createCatalogStore()
 
 /**
  * The language filter to actually apply. Until the user picks one explicitly,

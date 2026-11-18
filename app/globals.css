@@ -65,3 +65,13 @@ body {
 .player-initializing {
   opacity: 0;
 }
+
+.catalogue-page {
+  caret-color: #2dd4bf;
+}
+
+.catalogue-page::selection,
+.catalogue-page ::selection {
+  background: #0f766e;
+  color: #ffffff;
+}

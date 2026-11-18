@@ -62,6 +62,7 @@ async function isRateLimited(ip: string): Promise<boolean> {
 /** Human-readable label + embed color per feedback type. */
 const TYPE_META: Record<FeedbackType, { label: string; color: number }> = {
   [FeedbackType.PlaylistSuggestion]: { label: '🎬 Playlist suggestion', color: 0x2e4b2c },
+  [FeedbackType.PodcastSuggestion]: { label: '🎙️ Podcast suggestion', color: 0x0d9488 },
   [FeedbackType.AppSuggestion]: { label: '💡 App suggestion', color: 0x3b82f6 },
   [FeedbackType.Complaint]: { label: '⚠️ Complaint', color: 0xdc2626 },
   [FeedbackType.General]: { label: '💬 General', color: 0x64748b },

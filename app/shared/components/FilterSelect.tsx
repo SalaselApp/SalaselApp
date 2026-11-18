@@ -25,7 +25,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({
   allOptionLabel,
 }) => {
   const dropdownClass =
-    'px-4 py-2 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary transition-all cursor-pointer'
+    'min-h-11 max-w-full px-4 py-2 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary transition-all cursor-pointer'
 
   return (
     <div className="flex flex-col gap-1">

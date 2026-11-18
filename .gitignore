@@ -46,7 +46,8 @@ next-env.d.ts
 PR.md
 
 # Local design artifacts
-/docs/
+/docs/*
+!/docs/podcasts-contract.md
 /exports/
 /scripts/
 /public/img/landing-knowledge-path-square.png
