@@ -22,14 +22,16 @@ export function youtubeWatchUrl(videoId: string, playlistId?: string): string {
  * Note: YouTube still shows end-screen suggestions by design; these cannot be
  * fully removed from an official embed.
  */
-export function youtubeEmbedUrl(videoId: string, playlistId?: string): string {
+export function youtubeEmbedUrl(videoId: string, playlistId?: string, origin?: string): string {
   const params = new URLSearchParams({
     rel: '0',
     modestbranding: '1',
     iv_load_policy: '3',
     playsinline: '1',
+    enablejsapi: '1',
   })
   if (playlistId) params.set('list', playlistId)
+  if (origin) params.set('origin', origin)
   return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`
 }
 
