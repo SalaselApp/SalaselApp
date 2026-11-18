@@ -58,3 +58,9 @@ Apply shared forward migration `20261106000000_podcast_curated_metadata.sql` bef
 The stable base `/{lang}/podcast/{id}` now presents metadata. Its play action opens `/{lang}/podcast/{id}/watch` for the shared player and notes. Both check current public availability; neither requires playlist membership or an episode sequence. Metadata canonicals remain the stable base detail URL. New activity destinations use `/watch`; legacy base activity remains accepted and safely normalizes to playback in the app and extension. Source event timestamps, identities and existing playlist routes are preserved.
 
 Standalone podcast notes use the real YouTube media ID with `playlistId:null`, preserving an existing genuine playlist association for a shared-video note rather than erasing it. Notes save before navigation and retain existing markdown/download and extension merge semantics. Player readiness/errors never create consumed activity.
+
+## Live rollout — 2026-11-18
+
+Applied `20260716000000_add_podcasts.sql` and `20261106000000_podcast_curated_metadata.sql` to the linked production project `rsrzawndbpoptdvxkpik` using `supabase db push --linked --include-all --yes`. The dry run contained exactly these two migrations. Both versions are recorded in the remote migration ledger. A public REST select including participants/type/style/classes/description/published_at returned HTTP 200 with no published rows. Local sample podcasts were not copied to production.
+
+CLI 2.107.0 reported a post-migration pg-delta catalog cache warning (missing container certificate file); migration application succeeded and the remote ledger and live REST schema checks passed. Deploying the apps remains a separate step. Both repositories carry identical migration versions; apply through one owner and do not recreate the table manually. Existing playlist data was not changed.
