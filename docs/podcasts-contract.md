@@ -64,3 +64,7 @@ Standalone podcast notes use the real YouTube media ID with `playlistId:null`, p
 Applied `20260716000000_add_podcasts.sql` and `20261106000000_podcast_curated_metadata.sql` to the linked production project `rsrzawndbpoptdvxkpik` using `supabase db push --linked --include-all --yes`. The dry run contained exactly these two migrations. Both versions are recorded in the remote migration ledger. A public REST select including participants/type/style/classes/description/published_at returned HTTP 200 with no published rows. Local sample podcasts were not copied to production.
 
 CLI 2.107.0 reported a post-migration pg-delta catalog cache warning (missing container certificate file); migration application succeeded and the remote ledger and live REST schema checks passed. Deploying the apps remains a separate step. Both repositories carry identical migration versions; apply through one owner and do not recreate the table manually. Existing playlist data was not changed.
+
+### Public privilege follow-up
+
+The live schema export revealed inherited Supabase default privileges granting ALL to public roles despite the initial SELECT grant. Follow-up `20261118000000_podcasts_public_read_privileges.sql` revokes inherited table privileges and explicitly grants SELECT only to anon/authenticated. Local checks confirm SELECT=true and INSERT/UPDATE/DELETE/TRUNCATE=false for both roles. RLS and the published-only read policy remain in force.
