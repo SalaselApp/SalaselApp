@@ -131,3 +131,40 @@ test('page append deduplicates overlapping records', () => {
   assert.equal(typeof paging.appendCatalogPage, 'function')
   assert.deepEqual(paging.appendCatalogPage([{ id: 'a' }], [{ id: 'a' }, { id: 'b' }]), [{ id: 'a' }, { id: 'b' }])
 })
+
+test('paging sessions retain rows on errors, block duplicate requests, and reject cancelled old responses', async () => {
+  const sessions = await import('../app/catalog/session.ts')
+  assert.equal(typeof sessions.CatalogSession, 'function')
+  let resolve!: (page: { items: { id: string }[]; nextCursor: string | null }) => void
+  let calls = 0
+  let fail = false
+  const session = new sessions.CatalogSession<{ id: string }>(async () => {
+    calls++
+    if (fail) throw new Error('network')
+    return new Promise((done) => {
+      resolve = done
+    })
+  })
+  const first = session.loadMore()
+  await session.loadMore()
+  assert.equal(calls, 1)
+  session.cancel()
+  resolve({ items: [{ id: 'stale' }], nextCursor: 'next' })
+  await first
+  assert.deepEqual(session.getSnapshot().items, [])
+  const fresh = session.loadMore()
+  resolve({ items: [{ id: 'fresh' }], nextCursor: 'next' })
+  await fresh
+  fail = true
+  await session.loadMore()
+  assert.deepEqual(session.getSnapshot().items, [{ id: 'fresh' }])
+  assert.equal(session.getSnapshot().error, true)
+  assert.equal(session.getSnapshot().nextCursor, 'next')
+  fail = false
+  const retry = session.loadMore()
+  resolve({ items: [{ id: 'fresh' }, { id: 'last' }], nextCursor: null })
+  await retry
+  assert.deepEqual(session.getSnapshot().items, [{ id: 'fresh' }, { id: 'last' }])
+  await session.loadMore()
+  assert.equal(calls, 4)
+})

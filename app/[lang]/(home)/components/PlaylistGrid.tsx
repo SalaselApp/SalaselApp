@@ -1,57 +1,42 @@
 'use client'
 
 import type { CalculatedPlaylist, LanguageCode, Translations } from '@/app/types'
-import type { PlaylistCardPlaylist } from '@/app/[lang]/(home)/components/PlaylistCard'
-
-import React, { ReactNode } from 'react'
 import PlaylistCard from '@/app/[lang]/(home)/components/PlaylistCard'
 import { usePlaylistStore, effectiveLanguage } from '@/app/store/usePlaylistStore'
 import { useBookmarkStore } from '@/app/store/useBookmarkStore'
+import { useCatalogPage, type InitialCatalogPage } from '@/app/catalog/useCatalogPage'
+import LoadMore from '@/app/catalog/LoadMore'
 
-export type PlaylistGridPlaylist = Pick<
-  CalculatedPlaylist,
-  'id' | 'language' | 'type' | 'categories' | 'style' | 'classes' | 'videoCount'
->
 export interface PlaylistGridProps {
-  playlists: Record<string, PlaylistGridPlaylist & PlaylistCardPlaylist>
+  initial: InitialCatalogPage<CalculatedPlaylist>
+  searchQuery: string
   lang: LanguageCode
   t: Translations
 }
-
-const PlaylistGrid: React.FC<PlaylistGridProps> = ({ playlists, lang, t }) => {
-  const { filters } = usePlaylistStore()
-  const { isBookmarked } = useBookmarkStore()
-
-  // Defaults to the URL language until the user picks a language explicitly.
-  const languageFilter = effectiveLanguage(filters.language, lang)
-
-  const cards: ReactNode[] = []
-  for (const id in playlists) {
-    if (!Object.hasOwn(playlists, id)) continue
-
-    const pl = playlists[id]
-
-    if (
-      // Language filter ('all' shows every language)
-      (languageFilter === 'all' || pl.language === languageFilter) &&
-      // Bookmark filter (optional)
-      (!filters.bookmarkedOnly || isBookmarked(pl.id)) &&
-      // Content type filter (optional)
-      (filters.contentType === 'all' || pl.type === filters.contentType) &&
-      // Category filter (optional)
-      (filters.category === 'all' || pl.categories.includes(filters.category as any)) &&
-      // Presentation style filter (optional)
-      (filters.presentationStyle === 'all' || pl.style === filters.presentationStyle) &&
-      // Class filter (optional)
-      (filters.class === 'all' || pl.classes.includes(filters.class as any))
-    ) {
-      // Prioritize first 6 cards for LCP optimization (first 2 rows in 3-column grid)
-      const isPriority = cards.length < 6
-      cards.push(<PlaylistCard key={pl.id} playlist={pl} lang={lang} priority={isPriority} t={t} />)
-    }
-  }
-
-  return <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">{cards}</div>
+export default function PlaylistGrid({ initial, searchQuery, lang, t }: PlaylistGridProps) {
+  const filters = usePlaylistStore((state) => state.filters)
+  const bookmarks = useBookmarkStore((state) => state.bookmarkedPlaylists)
+  const page = useCatalogPage<CalculatedPlaylist>(
+    {
+      kind: 'series',
+      language: effectiveLanguage(filters.language, lang),
+      q: searchQuery,
+      category: filters.category === 'all' ? undefined : filters.category,
+      contentType: filters.contentType === 'all' ? undefined : filters.contentType,
+      presentationStyle: filters.presentationStyle === 'all' ? undefined : filters.presentationStyle,
+      class: filters.class === 'all' ? undefined : filters.class,
+      ...(filters.bookmarkedOnly ? { ids: [...bookmarks].sort() } : {}),
+    },
+    initial,
+  )
+  return (
+    <section aria-busy={page.loading}>
+      <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        {page.items.map((playlist, index) => (
+          <PlaylistCard key={playlist.id} playlist={playlist} lang={lang} priority={index < 6} t={t} />
+        ))}
+      </div>
+      <LoadMore {...page} hasMore={!!page.nextCursor} count={page.items.length} onLoad={page.loadMore} lang={lang} />
+    </section>
+  )
 }
-
-export default PlaylistGrid
