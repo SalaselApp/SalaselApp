@@ -5,12 +5,15 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 
 import brandMark from '@/app/icon.png'
+import { getNotesCopy } from '@/app/notes/copy'
 import LanguageSwitcher from '@/app/shared/components/LanguageSwitcher'
 import type { LanguageCode, Translations } from '@/app/types'
 
 export default function ContentNav({ lang, t }: { lang: LanguageCode; t: Translations }) {
   const pathname = usePathname()
   const isPodcasts = pathname.startsWith(`/${lang}/podcast`)
+  const isNotes = pathname.startsWith(`/${lang}/notes`)
+  const notesCopy = getNotesCopy(lang)
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-700/60 bg-slate-800">
@@ -23,13 +26,13 @@ export default function ContentNav({ lang, t }: { lang: LanguageCode; t: Transla
           className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md text-sm font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-base"
         >
           <Image src={brandMark} alt="" width={32} height={32} className="size-8 object-contain" />
-          <span>{t.appTitle}</span>
+          <span className="hidden sm:inline">{t.appTitle}</span>
         </Link>
         <div className="flex min-w-0 items-center justify-center gap-1">
           <Link
-            aria-current={!isPodcasts ? 'page' : undefined}
+            aria-current={!isPodcasts && !isNotes ? 'page' : undefined}
             href={`/${lang}`}
-            className={`inline-flex min-h-11 items-center border-b-2 px-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${!isPodcasts ? 'border-primary text-white' : 'border-transparent text-slate-400 hover:text-white'}`}
+            className={`inline-flex min-h-11 items-center border-b-2 px-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${!isPodcasts && !isNotes ? 'border-primary text-white' : 'border-transparent text-slate-400 hover:text-white'}`}
           >
             {t.seriesNavLabel}
           </Link>
@@ -39,6 +42,13 @@ export default function ContentNav({ lang, t }: { lang: LanguageCode; t: Transla
             className={`inline-flex min-h-11 items-center border-b-2 px-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isPodcasts ? 'border-primary text-white' : 'border-transparent text-slate-400 hover:text-white'}`}
           >
             {t.podcastsNavLabel}
+          </Link>
+          <Link
+            aria-current={isNotes ? 'page' : undefined}
+            href={`/${lang}/notes`}
+            className={`inline-flex min-h-11 items-center border-b-2 px-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isNotes ? 'border-primary text-white' : 'border-transparent text-slate-400 hover:text-white'}`}
+          >
+            {notesCopy.nav}
           </Link>
         </div>
         <div className="justify-self-end">

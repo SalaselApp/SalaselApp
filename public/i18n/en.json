@@ -104,7 +104,12 @@
     "successMessage": "Thank you! Your feedback was sent.",
     "errorMessage": "Could not send, please try again.",
     "rateLimitMessage": "You've sent too many messages. Please try again later.",
-    "closeLabel": "Close"
+    "closeLabel": "Close",
+    "linkLabel": "Link",
+    "playlistLinkPlaceholder": "https://www.youtube.com/playlist?list=…",
+    "podcastLinkPlaceholder": "https://www.youtube.com/watch?v=…",
+    "playlistLinkError": "Enter a valid YouTube playlist link.",
+    "podcastLinkError": "Enter a valid YouTube podcast video link."
   },
   "appTitle": "Salasel",
   "appFullTitle": "Salasel - Educational, Awareness and Purification Series",

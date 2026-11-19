@@ -2,31 +2,37 @@
 
 import type { CalculatedPlaylist, CalculatedVideo, Translations } from '@/app/types'
 
-import React, { useState, useEffect, ReactNode } from 'react'
+import React, { useSyncExternalStore, ReactNode } from 'react'
 import ContentCard from '@/app/[lang]/playlist/[id]/components/ContentCard'
 import { useProgressStore } from '@/app/store/useProgressStore'
+import { useCatalogPage, type InitialCatalogPage } from '@/app/catalog/useCatalogPage'
+import LoadMore from '@/app/catalog/LoadMore'
 import { useNotesStore } from '@/app/store/useNotesStore'
 import { downloadTextFile } from '@/app/utils'
 import { buildPlaylistNotesMarkdown, playlistNotesFileName, hasContent, MARKDOWN_MIME } from '@/app/notes'
 
-export type SelectedPlaylistContentPlaylist = Pick<CalculatedPlaylist, 'id' | 'name'>
+export type SelectedPlaylistContentPlaylist = Pick<CalculatedPlaylist, 'id' | 'name' | 'videoCount'>
 export type SelectedPlaylistContentVideo = Pick<CalculatedVideo, 'id' | 'title' | 'playlistId'>
 export interface SelectedPlaylistContentProps {
   playlist: SelectedPlaylistContentPlaylist
-  videos: Record<string, SelectedPlaylistContentVideo>
+  initial: InitialCatalogPage<CalculatedVideo>
   t: Translations
 }
 
-const SelectedPlaylistContent: React.FC<SelectedPlaylistContentProps> = ({ playlist, videos, t }) => {
+const subscribeToHydration = () => () => {}
+const clientSnapshot = () => true
+const serverSnapshot = () => false
+
+const SelectedPlaylistContent: React.FC<SelectedPlaylistContentProps> = ({ playlist, initial, t }) => {
+  const page = useCatalogPage<CalculatedVideo>(
+    { kind: 'lessons', language: 'all', q: '', playlistId: playlist.id },
+    initial,
+  )
   const { completedVideos, toggleVideoCompleted } = useProgressStore()
   const notes = useNotesStore((s) => s.notes)
-  const [isClient, setIsClient] = useState(false)
+  const isClient = useSyncExternalStore(subscribeToHydration, clientSnapshot, serverSnapshot)
 
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  const totalVideos = Object.keys(videos).length
+  const totalVideos = Math.max(playlist.videoCount, page.items.length)
   const completedCount = isClient ? (completedVideos[playlist.id]?.size ?? 0) : 0
   const progressPercent = totalVideos > 0 ? Math.round((completedCount / totalVideos) * 100) : 0
 
@@ -52,10 +58,7 @@ const SelectedPlaylistContent: React.FC<SelectedPlaylistContentProps> = ({ playl
   }
 
   const cards: ReactNode[] = []
-  for (const id in videos) {
-    if (!Object.hasOwn(videos, id)) continue
-
-    const v = videos[id]
+  for (const v of page.items) {
     const isPriority = cards.length < 4
     const completed = isClient ? (completedVideos[playlist.id]?.has(v.id) ?? false) : false
     const note = isClient ? notes[v.id] : undefined
@@ -112,7 +115,16 @@ const SelectedPlaylistContent: React.FC<SelectedPlaylistContentProps> = ({ playl
         </div>
       </div>
 
-      <div className="divide-y divide-gray-200 dark:divide-gray-700">{cards}</div>
+      <div className="divide-y divide-gray-200 dark:divide-gray-700" aria-busy={page.loading}>
+        {cards}
+      </div>
+      <LoadMore
+        {...page}
+        hasMore={!!page.nextCursor}
+        count={page.items.length}
+        onLoad={page.loadMore}
+        lang={t.__language.code}
+      />
     </div>
   )
 }

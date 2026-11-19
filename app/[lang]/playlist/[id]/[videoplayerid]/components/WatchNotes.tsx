@@ -1,9 +1,10 @@
 'use client'
 
-import type { NoteRecord, Translations } from '@/app/types'
+import type { Translations } from '@/app/types'
 
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { useNotesStore } from '@/app/store/useNotesStore'
+import React from 'react'
+import { useNoteDraft } from '@/app/notes/useNoteDraft'
+import { getNotesCopy } from '@/app/notes/copy'
 import { usePreferencesStore } from '@/app/store/usePreferencesStore'
 import { downloadTextFile } from '@/app/utils'
 import { buildVideoNoteMarkdown, videoNoteFileName, hasContent, MARKDOWN_MIME } from '@/app/notes'
@@ -21,54 +22,9 @@ export interface WatchNotesProps {
  * and a download-note action.
  */
 const WatchNotes: React.FC<WatchNotesProps> = ({ videoId, playlistId, t }) => {
-  const upsertNote = useNotesStore((s) => s.upsertNote)
-  const existing = useNotesStore((s) => s.notes[videoId])
+  const { note: existing, text, status, change, save } = useNoteDraft(videoId, playlistId)
+  const copy = getNotesCopy(t.__language.code)
   const toggleNotesSide = usePreferencesStore((s) => s.toggleNotesSide)
-
-  const [draft, setDraft] = useState<NoteRecord | null>(null)
-  const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const pendingRef = useRef<NoteRecord | null>(null)
-  const text = draft && (!existing || draft.updatedAt >= existing.updatedAt) ? draft.text : (existing?.text ?? '')
-
-  const flushPending = useCallback(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
-    }
-    const pending = pendingRef.current
-    if (!pending) return false
-    pendingRef.current = null
-    // A standalone edit must not discard an existing real playlist association
-    // for the same YouTube video. A new independent note stays playlistId:null.
-    const current = useNotesStore.getState().notes[pending.videoId]
-    upsertNote({ ...pending, playlistId: pending.playlistId ?? current?.playlistId ?? null })
-    return true
-  }, [upsertNote])
-
-  useEffect(() => {
-    // React cleanup covers client navigation; pagehide covers reload/tab close.
-    const onPageHide = () => {
-      flushPending()
-    }
-    window.addEventListener('pagehide', onPageHide)
-    return () => {
-      window.removeEventListener('pagehide', onPageHide)
-      flushPending()
-    }
-  }, [flushPending])
-
-  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const next = { videoId, playlistId, text: event.target.value, updatedAt: Date.now() }
-    setDraft(next)
-    pendingRef.current = next
-    setStatus('saving')
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => {
-      flushPending()
-      setStatus('saved')
-    }, 600)
-  }
 
   const handleDownload = () => {
     const note = existing
@@ -86,8 +42,8 @@ const WatchNotes: React.FC<WatchNotesProps> = ({ videoId, playlistId, t }) => {
           {t.notesLabel}
         </h2>
         <div className="flex items-center gap-1">
-          {status !== 'idle' && (
-            <span className="text-xs text-slate-400 me-1">
+          {status !== 'idle' && status !== 'error' && (
+            <span role="status" className="text-xs text-slate-400 me-1">
               {status === 'saving' ? t.noteSavingLabel : t.noteSavedLabel}
             </span>
           )}
@@ -117,12 +73,24 @@ const WatchNotes: React.FC<WatchNotesProps> = ({ videoId, playlistId, t }) => {
         </div>
       </div>
 
+      {status === 'error' && (
+        <div role="alert" className="m-3 rounded-lg border border-red-400/50 bg-red-950/30 p-3 text-sm text-red-100">
+          <p>
+            {copy.saveError} {copy.draftKept}
+          </p>
+          <button
+            type="button"
+            onClick={save}
+            className="mt-2 min-h-11 rounded-lg border border-red-300 px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
+          >
+            {copy.retry}
+          </button>
+        </div>
+      )}
       <textarea
         value={text}
-        onChange={handleChange}
-        onBlur={() => {
-          if (flushPending()) setStatus('saved')
-        }}
+        onChange={(event) => change(event.target.value)}
+        onBlur={save}
         placeholder={t.notesPlaceholder}
         aria-label={t.notesLabel}
         className="flex-1 min-h-72 w-full resize-none bg-transparent p-4 text-sm leading-relaxed text-slate-100 placeholder:text-slate-500 focus:outline-none"

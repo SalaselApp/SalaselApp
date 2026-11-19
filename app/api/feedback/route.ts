@@ -6,6 +6,7 @@ import {
   type FeedbackPayload,
 } from '@/app/types'
 import { supabase } from '@/app/lib/supabase'
+import { feedbackRequiresLink, isSupportedSuggestionLink } from '@/app/feedback/validation'
 
 /**
  * User feedback → Discord webhook.
@@ -98,14 +99,27 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const message = typeof body.message === 'string' ? body.message.trim() : ''
+  const requiresLink = feedbackRequiresLink(body.type)
   if (!message) {
-    return Response.json({ error: 'Message is required' }, { status: 400 })
+    return Response.json({ error: requiresLink ? 'Link is required' : 'Message is required' }, { status: 400 })
   }
   // Reject over-length input rather than silently truncating, so the sender
   // knows their message wasn't delivered as written.
   if (message.length > FEEDBACK_MESSAGE_MAX_LENGTH) {
     return Response.json(
       { error: `Message must be ${FEEDBACK_MESSAGE_MAX_LENGTH} characters or fewer` },
+      { status: 400 },
+    )
+  }
+  if (requiresLink && !isSupportedSuggestionLink(body.type, message)) {
+    return Response.json(
+      {
+        error:
+          body.type === FeedbackType.PlaylistSuggestion
+            ? 'Enter a valid YouTube playlist link'
+            : 'Enter a valid YouTube video link',
+        field: 'link',
+      },
       { status: 400 },
     )
   }

@@ -4,7 +4,9 @@ import React from 'react'
 import SelectedPlaylistCard from '@/app/[lang]/playlist/[id]/components/SelectedPlaylistCard'
 import SelectedPlaylistContent from '@/app/[lang]/playlist/[id]/components/SelectedPlaylistContent'
 import RecordVisit from '@/app/[lang]/playlist/[id]/components/RecordVisit'
-import { getPlaylist, getVideos } from '@/app/db'
+import { getPlaylist } from '@/app/db'
+import { initialCatalogPage } from '@/app/catalog/server'
+import type { CalculatedVideo } from '@/app/types'
 import { getTranslations } from '@/app/translate'
 
 export { generateStaticParams } from '@/app/[lang]/playlist/[id]/params'
@@ -23,17 +25,18 @@ const SelectedPlaylistPage: React.FC<SelectedPlaylistPageProps> = async ({ param
     return <div>{t.playlistNotFound}</div>
   }
 
-  // Load videos for this playlist
-  const videos = await getVideos(playlist.id)
-  if (Object.keys(videos).length === 0) {
-    return <div>{t.noVideosFound}</div>
-  }
+  const initial = await initialCatalogPage<CalculatedVideo>({
+    kind: 'lessons',
+    language: 'all',
+    q: '',
+    playlistId: playlist.id,
+  })
 
   return (
     <>
       <RecordVisit playlistId={playlist.id} />
       <SelectedPlaylistCard playlist={playlist} t={t} />
-      <SelectedPlaylistContent playlist={playlist} videos={videos} t={t} />
+      <SelectedPlaylistContent playlist={playlist} initial={initial} t={t} />
     </>
   )
 }

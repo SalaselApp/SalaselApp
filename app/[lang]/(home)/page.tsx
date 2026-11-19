@@ -5,7 +5,8 @@ import PlaylistGrid from '@/app/[lang]/(home)/components/PlaylistGrid'
 import FilterGrid from '@/app/[lang]/(home)/components/FilterGrid'
 import RecentlyWatched from '@/app/[lang]/(home)/components/RecentlyWatched'
 import CatalogPage from '@/app/shared/components/CatalogPage'
-import { getPlaylists, searchPlaylists } from '@/app/db'
+import { initialCatalogPage } from '@/app/catalog/server'
+import type { CalculatedPlaylist } from '@/app/types'
 import { getTranslations } from '@/app/translate'
 
 export { generateStaticParams } from '@/app/[lang]/(home)/params'
@@ -19,20 +20,23 @@ export interface HomeProps {
 const Home: React.FC<HomeProps> = async ({ params, searchParams }) => {
   const { lang } = await params
   const t = getTranslations(lang)
-  const playlists = await getPlaylists()
 
   // Apply search filter if query exists
   const resolvedSearchParams = await searchParams
-  const searchQuery = resolvedSearchParams.q || ''
-  const filteredPlaylists = searchPlaylists(playlists, searchQuery)
+  const searchQuery = (resolvedSearchParams.q || '').trim().slice(0, 200)
+  const initial = await initialCatalogPage<CalculatedPlaylist>({
+    kind: 'series',
+    language: t.__language.code,
+    q: searchQuery,
+  })
 
   return (
     <CatalogPage title={t.seriesNavLabel} t={t}>
       <div className="relative mb-12">
         <FilterGrid t={t} />
       </div>
-      <RecentlyWatched playlists={playlists} lang={t.__language.code} t={t} />
-      <PlaylistGrid playlists={filteredPlaylists} lang={t.__language.code} t={t} />
+      <RecentlyWatched lang={t.__language.code} t={t} />
+      <PlaylistGrid initial={initial} searchQuery={searchQuery} lang={t.__language.code} t={t} />
     </CatalogPage>
   )
 }

@@ -36,17 +36,16 @@ export const getPlaylists = unstable_cache(
   { tags: [PLAYLISTS_TAG], revalidate: PLAYLISTS_REVALIDATE },
 )
 
-/**
- * Fetch a single playlist by id.
- *
- * Derived from the cached `getPlaylists()` map rather than a separate query,
- * so visiting the home page warms the cache for every detail page and
- * back-and-forth navigation costs no extra Supabase round-trips.
- */
-export async function getPlaylist(id: string): Promise<CalculatedPlaylist | undefined> {
-  const playlists = await getPlaylists()
-  return playlists[id]
-}
+/* Detail pages query one row, rather than warming the entire catalog. */
+export const getPlaylist = unstable_cache(
+  async (id: string): Promise<CalculatedPlaylist | undefined> => {
+    const { data, error } = await supabase.from('playlists').select('*').eq('id', id).maybeSingle()
+    if (error || !data) return undefined
+    return rowToPlaylist(data as PlaylistRow)
+  },
+  ['playlist'],
+  { tags: [PLAYLISTS_TAG], revalidate: PLAYLISTS_REVALIDATE },
+)
 
 export function searchPlaylists(playlists: Playlists, query: string): Playlists {
   if (!query.trim()) return playlists
