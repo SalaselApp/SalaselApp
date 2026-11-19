@@ -123,7 +123,7 @@ export const feedbackTypes: readonly FeedbackType[] = Object.freeze([
 export interface FeedbackPayload {
   /** Which kind of feedback this is */
   type: FeedbackType
-  /** The feedback body, plain text */
+  /** A supported YouTube link for playlist/podcast suggestions; plain text for other types. */
   message: string
   /** Optional way to reach the user back (email, handle, etc.) */
   contact?: string
@@ -172,6 +172,19 @@ export interface Language {
 
 /** Translation keys interface */
 export interface Translations {
+  releaseNotes: {
+    title: string
+    close: string
+    confirm: string
+    notesTitle: string
+    notesBody: string
+    podcastsTitle: string
+    podcastsBody: string
+    browsingTitle: string
+    browsingBody: string
+    suggestionsTitle: string
+    suggestionsBody: string
+  }
   __language: Language
   contents: {
     0: string
@@ -270,6 +283,11 @@ export interface Translations {
     typeGeneral: string
     messageLabel: string
     messagePlaceholder: string
+    linkLabel: string
+    playlistLinkPlaceholder: string
+    podcastLinkPlaceholder: string
+    playlistLinkError: string
+    podcastLinkError: string
     contactLabel: string
     contactPlaceholder: string
     submitLabel: string

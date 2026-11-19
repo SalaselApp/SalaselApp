@@ -9,6 +9,7 @@ import ContentNav from '@/app/shared/components/ContentNav'
 import LanguagePicker from '@/app/shared/components/LanguagePicker'
 import NotesInbox from '@/app/shared/components/NotesInbox'
 import FeedbackWidget from '@/app/shared/components/FeedbackWidget'
+import ReleaseNotes from '@/app/shared/components/ReleaseNotes'
 import '@/app/globals.css'
 
 export { viewport } from '@/app/static'
@@ -96,6 +97,7 @@ const LanguageLayout: React.FC<Readonly<LanguageLayoutProps>> = async ({ childre
         <ContentNav lang={lang.code} t={t} />
         {children}
         <FeedbackWidget t={t} lang={lang.code} />
+        <ReleaseNotes lang={lang.code} copy={t.releaseNotes} />
       </body>
     </html>
   )

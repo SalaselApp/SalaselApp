@@ -1,3 +1,4 @@
+import { archiveBeforeProgressWrite } from '../notes/legacyArchive.ts'
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
@@ -73,25 +74,38 @@ export const useProgressStore = create<ProgressState>()(
       name: 'progress-storage',
       version: 1,
       migrate: (persisted) => migrateProgressState(persisted) as unknown as ProgressState,
-      storage: createJSONStorage(() => localStorage, {
-        replacer: (key, value) =>
-          key === 'completedVideos'
-            ? Object.fromEntries(
-                Object.entries(value as Record<string, Set<string>>).map(([playlistId, videoSet]) => [
-                  playlistId,
-                  Array.from(videoSet as Set<string>),
-                ]),
-              )
-            : value,
-        reviver: (key, value) => {
-          if (key !== 'completedVideos') return value
-          const completed: Record<string, Set<string>> = {}
-          for (const playlistId in value as Record<string, string[]>)
-            if (Array.isArray((value as Record<string, string[]>)[playlistId]))
-              completed[playlistId] = new Set((value as Record<string, string[]>)[playlistId])
-          return completed
+      storage: createJSONStorage(
+        () => ({
+          getItem: (key) => localStorage.getItem(key),
+          setItem: (key, value) => {
+            archiveBeforeProgressWrite(localStorage)
+            localStorage.setItem(key, value)
+          },
+          removeItem: (key) => {
+            archiveBeforeProgressWrite(localStorage)
+            localStorage.removeItem(key)
+          },
+        }),
+        {
+          replacer: (key, value) =>
+            key === 'completedVideos'
+              ? Object.fromEntries(
+                  Object.entries(value as Record<string, Set<string>>).map(([playlistId, videoSet]) => [
+                    playlistId,
+                    Array.from(videoSet as Set<string>),
+                  ]),
+                )
+              : value,
+          reviver: (key, value) => {
+            if (key !== 'completedVideos') return value
+            const completed: Record<string, Set<string>> = {}
+            for (const playlistId in value as Record<string, string[]>)
+              if (Array.isArray((value as Record<string, string[]>)[playlistId]))
+                completed[playlistId] = new Set((value as Record<string, string[]>)[playlistId])
+            return completed
+          },
         },
-      }),
+      ),
     },
   ),
 )

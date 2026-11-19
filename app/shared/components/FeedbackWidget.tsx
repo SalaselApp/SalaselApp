@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { FeedbackType, FEEDBACK_MESSAGE_MAX_LENGTH, FEEDBACK_CONTACT_MAX_LENGTH } from '@/app/types'
 import type { Translations } from '@/app/types'
+import { feedbackRequiresLink, isSupportedSuggestionLink } from '@/app/feedback/validation'
 
 export interface FeedbackWidgetProps {
   t: Translations
@@ -27,8 +28,13 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ t, lang }) => {
   const [message, setMessage] = useState('')
   const [contact, setContact] = useState('')
   const [status, setStatus] = useState<Status>('idle')
+  const [linkError, setLinkError] = useState(false)
+  const linkRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const dir = t.__language.dir
+  const requiresLink = feedbackRequiresLink(type)
+  const linkErrorMessage =
+    type === FeedbackType.PlaylistSuggestion ? t.feedback.playlistLinkError : t.feedback.podcastLinkError
 
   const typeOptions: { value: FeedbackType; label: string }[] = [
     { value: FeedbackType.PlaylistSuggestion, label: t.feedback.typePlaylist },
@@ -43,6 +49,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ t, lang }) => {
     setMessage('')
     setContact('')
     setStatus('idle')
+    setLinkError(false)
   }
 
   const close = () => {
@@ -65,7 +72,13 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ t, lang }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!message.trim() || status === 'submitting') return
+    if (requiresLink && !isSupportedSuggestionLink(type, message)) {
+      setLinkError(true)
+      linkRef.current?.focus()
+      return
+    }
 
+    setLinkError(false)
     setStatus('submitting')
     try {
       const res = await fetch('/api/feedback', {
@@ -82,6 +95,15 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ t, lang }) => {
       if (res.status === 429) {
         setStatus('rateLimited')
         return
+      }
+      if (res.status === 400 && requiresLink) {
+        const result = await res.json().catch(() => null)
+        if (result?.field === 'link') {
+          setLinkError(true)
+          setStatus('idle')
+          linkRef.current?.focus()
+          return
+        }
       }
       if (!res.ok) throw new Error(`Request failed: ${res.status}`)
       setStatus('success')
@@ -166,7 +188,11 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ t, lang }) => {
                   <select
                     id="feedback-type"
                     value={type}
-                    onChange={(e) => setType(e.target.value as FeedbackType)}
+                    onChange={(e) => {
+                      setType(e.target.value as FeedbackType)
+                      setLinkError(false)
+                      if (status !== 'submitting') setStatus('idle')
+                    }}
                     className="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                   >
                     {typeOptions.map((opt) => (
@@ -177,22 +203,56 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ t, lang }) => {
                   </select>
                 </div>
 
-                {/* Message */}
+                {/* Suggestions collect a link; other feedback keeps its message. */}
                 <div>
                   <label htmlFor="feedback-message" className="block text-sm font-medium text-slate-300 mb-1">
-                    {t.feedback.messageLabel}
+                    {requiresLink ? t.feedback.linkLabel : t.feedback.messageLabel}
                   </label>
-                  <textarea
-                    id="feedback-message"
-                    required
-                    rows={4}
-                    maxLength={FEEDBACK_MESSAGE_MAX_LENGTH}
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder={t.feedback.messagePlaceholder}
-                    aria-describedby="feedback-message-count"
-                    className="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary resize-y"
-                  />
+                  {requiresLink ? (
+                    <input
+                      ref={linkRef}
+                      id="feedback-message"
+                      type="url"
+                      inputMode="url"
+                      autoComplete="url"
+                      spellCheck={false}
+                      dir="ltr"
+                      required
+                      maxLength={FEEDBACK_MESSAGE_MAX_LENGTH}
+                      value={message}
+                      onChange={(e) => {
+                        setMessage(e.target.value)
+                        setLinkError(false)
+                      }}
+                      placeholder={
+                        type === FeedbackType.PlaylistSuggestion
+                          ? t.feedback.playlistLinkPlaceholder
+                          : t.feedback.podcastLinkPlaceholder
+                      }
+                      aria-invalid={linkError || undefined}
+                      aria-describedby={
+                        linkError ? 'feedback-link-error feedback-message-count' : 'feedback-message-count'
+                      }
+                      className="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  ) : (
+                    <textarea
+                      id="feedback-message"
+                      required
+                      rows={4}
+                      maxLength={FEEDBACK_MESSAGE_MAX_LENGTH}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder={t.feedback.messagePlaceholder}
+                      aria-describedby="feedback-message-count"
+                      className="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary resize-y"
+                    />
+                  )}
+                  {linkError && (
+                    <p id="feedback-link-error" role="alert" className="mt-1 text-sm text-red-400">
+                      {linkErrorMessage}
+                    </p>
+                  )}
                   <p
                     id="feedback-message-count"
                     className={`mt-1 text-xs text-end ${

@@ -1,4 +1,4 @@
-import type { NoteRecord } from '@/app/types'
+import type { NoteRecord } from './types.ts'
 
 /** MIME type for Markdown note exports. */
 export const MARKDOWN_MIME = 'text/markdown;charset=utf-8'
@@ -28,43 +28,48 @@ function isoTimestamp(epochMs: number): string {
  *
  * <note text>
  */
-function buildNoteSection(note: NoteRecord): string {
-  const url = `https://www.youtube.com/watch?v=${note.videoId}`
+function buildNoteSection(note: NoteRecord, title?: string): string {
+  const url = `https://www.youtube.com/watch?v=${encodeURIComponent(note.videoId)}`
+  const heading = (title ?? note.videoId).replace(/[\r\n]/g, ' ').replace(/[\[\]\\]/g, '\\$&')
   return [
-    `## [${note.videoId}](${url})`,
+    `## [${heading}](${url})`,
     `- **Playlist:** ${note.playlistId ?? '—'}`,
     `- **Updated:** ${isoTimestamp(note.updatedAt)}`,
     '',
-    note.text.trim(),
+    note.text,
   ].join('\n')
 }
 
 /** Markdown body for a single video's note download. */
-export function buildVideoNoteMarkdown(note: NoteRecord): string {
-  return `${buildNoteSection(note)}\n`
+export function buildVideoNoteMarkdown(note: NoteRecord, title?: string): string {
+  return `${buildNoteSection(note, title)}\n`
 }
 
 /** File name for a single video note download. */
 export function videoNoteFileName(videoId: string): string {
-  return `salasel-notes-${videoId}.md`
+  return `salasel-notes-${videoId.replace(/[^a-zA-Z0-9_-]/g, '_')}.md`
 }
 
 /**
  * Markdown body aggregating every (non-empty) note in a playlist. Sections are
  * separated by a `---` line and preceded by a title + export blockquote header.
  */
-export function buildPlaylistNotesMarkdown(playlistId: string, notes: NoteRecord[]): string {
+export function buildPlaylistNotesMarkdown(
+  playlistId: string,
+  notes: NoteRecord[],
+  metadata?: { title: string; videoTitles: Record<string, string> },
+): string {
   const included = notes.filter(hasContent)
   const header = [
-    `# Salasel notes — playlist ${playlistId}`,
+    `# Salasel notes — ${metadata?.title.replace(/[\r\n]/g, ' ') ?? `playlist ${playlistId}`}`,
     `> Exported ${new Date().toISOString()} · ${included.length} video${included.length === 1 ? '' : 's'}`,
     '',
   ].join('\n')
-  const body = included.map(buildNoteSection).join('\n\n---\n\n')
+  const body = included.map((note) => buildNoteSection(note, metadata?.videoTitles[note.videoId])).join('\n\n---\n\n')
   return `${header}\n${body}\n`
 }
 
 /** File name for a playlist notes download. */
 export function playlistNotesFileName(playlistId: string): string {
-  return `salasel-notes-playlist-${playlistId}.md`
+  return `salasel-notes-playlist-${playlistId.replace(/[^a-zA-Z0-9_-]/g, '_')}.md`
 }

@@ -104,9 +104,27 @@
     "successMessage": "ありがとうございます！フィードバックを送信しました。",
     "errorMessage": "送信できませんでした。もう一度お試しください。",
     "rateLimitMessage": "送信回数が多すぎます。しばらくしてからお試しください。",
-    "closeLabel": "閉じる"
+    "closeLabel": "閉じる",
+    "linkLabel": "リンク",
+    "playlistLinkPlaceholder": "https://www.youtube.com/playlist?list=…",
+    "podcastLinkPlaceholder": "https://www.youtube.com/watch?v=…",
+    "playlistLinkError": "有効なYouTube再生リストのリンクを入力してください。",
+    "podcastLinkError": "有効なYouTubeポッドキャスト動画のリンクを入力してください。"
   },
   "appTitle": "サラセル",
   "appFullTitle": "サラセル - 教育・啓発・浄化シリーズ",
-  "appDescription": "バランスの取れた個人とまとまりのある社会を構築するための教育・啓発・浄化シリーズ"
+  "appDescription": "バランスの取れた個人とまとまりのある社会を構築するための教育・啓発・浄化シリーズ",
+  "releaseNotes": {
+    "title": "Salaselの新機能",
+    "close": "新機能のお知らせを閉じる",
+    "confirm": "確認しました",
+    "notesTitle": "ノートをひとつの場所に",
+    "notesBody": "シリーズ、ポッドキャスト、動画のノートを検索・編集・ダウンロードできます。",
+    "podcastsTitle": "Salaselでポッドキャスト",
+    "podcastsBody": "ポッドキャストのエピソードを探して視聴しながら、ノートを残せます。",
+    "browsingTitle": "より快適に閲覧",
+    "browsingBody": "スクロールに合わせてコンテンツを読み込み、長い一覧も軽快に表示します。",
+    "suggestionsTitle": "リンクでかんたんに提案",
+    "suggestionsBody": "シリーズやポッドキャストを提案するときは、YouTubeリンクを送信してください。"
+  }
 }

@@ -1,6 +1,7 @@
 import PodcastCatalog from '@/app/[lang]/podcasts/components/PodcastCatalog'
 import CatalogPage from '@/app/shared/components/CatalogPage'
-import { getPodcasts, getPlaylists } from '@/app/db'
+import { initialCatalogPage } from '@/app/catalog/server'
+import type { Podcast } from '@/app/models/podcast'
 import { getTranslations } from '@/app/translate'
 
 export const dynamic = 'force-dynamic'
@@ -14,22 +15,13 @@ export default async function PodcastsPage({
 }) {
   const { lang } = await params
   const t = getTranslations(lang)
-  const [result, query, playlists] = await Promise.all([getPodcasts(), searchParams, getPlaylists()])
-  const search = query.q?.trim().toLocaleLowerCase() ?? ''
-  const podcasts = result.ok ? Object.values(result.podcasts) : []
+  const query = await searchParams
+  const search = query.q?.trim().slice(0, 200) ?? ''
+  const initial = await initialCatalogPage<Podcast>({ kind: 'podcasts', language: t.__language.code, q: search })
 
   return (
     <CatalogPage title={t.podcastsHeading} t={t} placeholder={t.searchPodcastsPlaceholder}>
-      <PodcastCatalog
-        podcasts={podcasts}
-        recentPlaylists={Object.fromEntries(
-          Object.values(playlists).map(({ id, name, thumbnailId }) => [id, { id, name, thumbnailId }]),
-        )}
-        lang={t.__language.code}
-        t={t}
-        error={result.ok ? undefined : result.error}
-        searchQuery={search}
-      />
+      <PodcastCatalog initial={initial} lang={t.__language.code} t={t} searchQuery={search} />
     </CatalogPage>
   )
 }

@@ -104,9 +104,27 @@
     "successMessage": "شكرًا لك! وصلتنا ملاحظتك.",
     "errorMessage": "تعذّر الإرسال، حاول مرة أخرى.",
     "rateLimitMessage": "لقد أرسلت الكثير من الرسائل. يرجى المحاولة لاحقًا.",
-    "closeLabel": "إغلاق"
+    "closeLabel": "إغلاق",
+    "linkLabel": "الرابط",
+    "playlistLinkPlaceholder": "https://www.youtube.com/playlist?list=…",
+    "podcastLinkPlaceholder": "https://www.youtube.com/watch?v=…",
+    "playlistLinkError": "أضف رابط قائمة تشغيل صالحًا من يوتيوب.",
+    "podcastLinkError": "أضف رابط مقطع بودكاست صالحًا من يوتيوب."
   },
   "appTitle": "سلاسل",
   "appFullTitle": "سلاسل - تطبيق سلاسل تعليمية وتوعوية وتزكوية",
-  "appDescription": "تطبيق سلاسل تعليمية وتوعوية وتزكوية لبناء إنسان متزن ومجتمع متماسك"
+  "appDescription": "تطبيق سلاسل تعليمية وتوعوية وتزكوية لبناء إنسان متزن ومجتمع متماسك",
+  "releaseNotes": {
+    "title": "الجديد في سلاسل",
+    "close": "إغلاق الجديد في سلاسل",
+    "confirm": "حسنًا",
+    "notesTitle": "ملاحظاتك في مكان واحد",
+    "notesBody": "ابحث في ملاحظات السلاسل والبودكاست والمقاطع، وعدّلها ونزّلها بسهولة.",
+    "podcastsTitle": "البودكاست في سلاسل",
+    "podcastsBody": "تصفح حلقات البودكاست، وشاهدها ودوّن ملاحظاتك عليها.",
+    "browsingTitle": "تصفح أسلس",
+    "browsingBody": "يظهر المزيد من المحتوى أثناء التمرير لتبقى القوائم الطويلة خفيفة.",
+    "suggestionsTitle": "اقتراحات بروابط مباشرة",
+    "suggestionsBody": "اقترح سلسلة أو بودكاست بإرسال رابط يوتيوب."
+  }
 }

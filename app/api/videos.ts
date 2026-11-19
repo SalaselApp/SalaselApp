@@ -47,8 +47,10 @@ export async function getVideo(
   videoId: string,
 ): Promise<{ playlist?: CalculatedPlaylist; video?: CalculatedVideo }> {
   const { getPlaylist } = await import('@/app/api/playlists')
-  const [playlist, videos] = await Promise.all([getPlaylist(playlistId), getVideos(playlistId)])
-
+  const [playlist, result] = await Promise.all([
+    getPlaylist(playlistId),
+    supabase.from('videos').select('*').eq('playlist_id', playlistId).eq('id', videoId).maybeSingle(),
+  ])
   if (!playlist) return {}
-  return { playlist, video: videos[videoId] }
+  return { playlist, video: result.error || !result.data ? undefined : rowToVideo(result.data as VideoRow) }
 }
