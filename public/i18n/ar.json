@@ -104,7 +104,12 @@
     "successMessage": "شكرًا لك! وصلتنا ملاحظتك.",
     "errorMessage": "تعذّر الإرسال، حاول مرة أخرى.",
     "rateLimitMessage": "لقد أرسلت الكثير من الرسائل. يرجى المحاولة لاحقًا.",
-    "closeLabel": "إغلاق"
+    "closeLabel": "إغلاق",
+    "linkLabel": "الرابط",
+    "playlistLinkPlaceholder": "https://www.youtube.com/playlist?list=…",
+    "podcastLinkPlaceholder": "https://www.youtube.com/watch?v=…",
+    "playlistLinkError": "أضف رابط قائمة تشغيل صالحًا من يوتيوب.",
+    "podcastLinkError": "أضف رابط مقطع بودكاست صالحًا من يوتيوب."
   },
   "appTitle": "سلاسل",
   "appFullTitle": "سلاسل - تطبيق سلاسل تعليمية وتوعوية وتزكوية",

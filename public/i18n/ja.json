@@ -104,7 +104,12 @@
     "successMessage": "ありがとうございます！フィードバックを送信しました。",
     "errorMessage": "送信できませんでした。もう一度お試しください。",
     "rateLimitMessage": "送信回数が多すぎます。しばらくしてからお試しください。",
-    "closeLabel": "閉じる"
+    "closeLabel": "閉じる",
+    "linkLabel": "リンク",
+    "playlistLinkPlaceholder": "https://www.youtube.com/playlist?list=…",
+    "podcastLinkPlaceholder": "https://www.youtube.com/watch?v=…",
+    "playlistLinkError": "有効なYouTube再生リストのリンクを入力してください。",
+    "podcastLinkError": "有効なYouTubeポッドキャスト動画のリンクを入力してください。"
   },
   "appTitle": "サラセル",
   "appFullTitle": "サラセル - 教育・啓発・浄化シリーズ",
