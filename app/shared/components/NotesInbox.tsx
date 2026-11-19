@@ -1,27 +1,41 @@
 'use client'
 
 import { useEffect } from 'react'
-import { importNotesFromExtension, NOTES_UPDATED_EVENT } from '@/app/store/useNotesStore'
+import {
+  flushNoteDrafts,
+  importNotesFromExtension,
+  NOTES_UPDATED_EVENT,
+  useNotesStore,
+} from '@/app/store/useNotesStore'
 
-/**
- * Bridges the Salasel browser extension's notes handoff into the app store.
- *
- * - On mount, reads localStorage["salasel-notes-inbox"] once.
- * - Listens for the extension's `salasel:notes-updated` CustomEvent to re-import
- *   while the tab is open (the native `storage` event does not fire same-tab).
- *
- * Renders nothing. Idle and silent when the extension is not installed.
- */
-const NotesInbox: React.FC = () => {
+/** Browser-local hydration and the existing v1 extension bridge. No note text is sent to a server. */
+export default function NotesInbox() {
   useEffect(() => {
+    useNotesStore.getState().hydrate()
     importNotesFromExtension()
-
-    const handler = () => importNotesFromExtension()
-    window.addEventListener(NOTES_UPDATED_EVENT, handler)
-    return () => window.removeEventListener(NOTES_UPDATED_EVENT, handler)
+    const storage = (event: StorageEvent) => {
+      if (!event.key || event.key === 'notes-storage') useNotesStore.getState().hydrate()
+      if (!event.key || event.key === 'salasel-notes-inbox') importNotesFromExtension()
+    }
+    const unload = (event: BeforeUnloadEvent) => {
+      if (!flushNoteDrafts()) {
+        event.preventDefault()
+        event.returnValue = ''
+      }
+    }
+    const hide = () => {
+      flushNoteDrafts()
+    }
+    window.addEventListener(NOTES_UPDATED_EVENT, importNotesFromExtension)
+    window.addEventListener('storage', storage)
+    window.addEventListener('beforeunload', unload)
+    window.addEventListener('pagehide', hide)
+    return () => {
+      window.removeEventListener(NOTES_UPDATED_EVENT, importNotesFromExtension)
+      window.removeEventListener('storage', storage)
+      window.removeEventListener('beforeunload', unload)
+      window.removeEventListener('pagehide', hide)
+    }
   }, [])
-
   return null
 }
-
-export default NotesInbox
