@@ -113,5 +113,18 @@
   },
   "appTitle": "Salasel",
   "appFullTitle": "Salasel - Educational, Awareness and Purification Series",
-  "appDescription": "Educational, awareness and purification series for building a balanced individual and cohesive society"
+  "appDescription": "Educational, awareness and purification series for building a balanced individual and cohesive society",
+  "releaseNotes": {
+    "title": "What’s new in Salasel",
+    "close": "Close what’s new",
+    "confirm": "Got it",
+    "notesTitle": "Your notes, together",
+    "notesBody": "Find, edit and download notes from series, podcasts and videos.",
+    "podcastsTitle": "Podcasts in Salasel",
+    "podcastsBody": "Explore podcast episodes, watch them and keep your notes alongside.",
+    "browsingTitle": "Smoother browsing",
+    "browsingBody": "More content loads as you scroll, keeping long lists light.",
+    "suggestionsTitle": "Suggest with a link",
+    "suggestionsBody": "Send a YouTube link when suggesting a series or podcast."
+  }
 }

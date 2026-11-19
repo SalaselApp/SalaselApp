@@ -172,6 +172,19 @@ export interface Language {
 
 /** Translation keys interface */
 export interface Translations {
+  releaseNotes: {
+    title: string
+    close: string
+    confirm: string
+    notesTitle: string
+    notesBody: string
+    podcastsTitle: string
+    podcastsBody: string
+    browsingTitle: string
+    browsingBody: string
+    suggestionsTitle: string
+    suggestionsBody: string
+  }
   __language: Language
   contents: {
     0: string

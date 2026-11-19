@@ -3,6 +3,57 @@
   "description": "Translation schema for Salasel app. All language files must include these keys.",
   "type": "object",
   "properties": {
+    "releaseNotes": {
+      "type": "object",
+      "required": [
+        "title",
+        "close",
+        "confirm",
+        "notesTitle",
+        "notesBody",
+        "podcastsTitle",
+        "podcastsBody",
+        "browsingTitle",
+        "browsingBody",
+        "suggestionsTitle",
+        "suggestionsBody"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "close": {
+          "type": "string"
+        },
+        "confirm": {
+          "type": "string"
+        },
+        "notesTitle": {
+          "type": "string"
+        },
+        "notesBody": {
+          "type": "string"
+        },
+        "podcastsTitle": {
+          "type": "string"
+        },
+        "podcastsBody": {
+          "type": "string"
+        },
+        "browsingTitle": {
+          "type": "string"
+        },
+        "browsingBody": {
+          "type": "string"
+        },
+        "suggestionsTitle": {
+          "type": "string"
+        },
+        "suggestionsBody": {
+          "type": "string"
+        }
+      }
+    },
     "contents": {
       "type": "object",
       "description": "Labels for content types (educational, awareness, purification)",
@@ -375,6 +426,7 @@
     "feedback",
     "appTitle",
     "appFullTitle",
-    "appDescription"
+    "appDescription",
+    "releaseNotes"
   ]
 }
